@@ -170,19 +170,34 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDataBtn.disabled = true;
         lucide.createIcons();
 
-        // Simulate API call to save data
-        setTimeout(() => {
-            showStatus('Data berhasil disave dan sinkronisasi selesai.', 'success');
-            saveDataBtn.innerHTML = '<i data-lucide="check" size="16"></i> Berhasil';
-            
-            // Convert it to local storage for simulation so search works
-            localStorage.setItem('sicepu_students_db', JSON.stringify(parsedData));
-
+        fetch('http://127.0.0.1:3000/api/students/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students: parsedData })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showStatus(data.message || 'Data berhasil disave dan sinkronisasi selesai.', 'success');
+                saveDataBtn.innerHTML = '<i data-lucide="check" size="16"></i> Berhasil';
+            } else {
+                showStatus(data.message || 'Gagal menyimpan data ke server.', 'danger');
+                saveDataBtn.innerHTML = '<i data-lucide="x" size="16"></i> Gagal';
+            }
             setTimeout(() => {
                 saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
                 saveDataBtn.disabled = false;
                 lucide.createIcons();
             }, 3000);
-        }, 1500);
+        })
+        .catch(err => {
+            showStatus('Error: ' + err.message, 'danger');
+            saveDataBtn.innerHTML = '<i data-lucide="alert-circle" size="16"></i> Error';
+            setTimeout(() => {
+                saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
+                saveDataBtn.disabled = false;
+                lucide.createIcons();
+            }, 3000);
+        });
     });
 });

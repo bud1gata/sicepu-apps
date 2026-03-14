@@ -21,47 +21,37 @@ document.addEventListener('DOMContentLoaded', () => {
     spinnerIcon.style.display = 'inline-block';
     btnText.innerText = 'MEMPROSES...';
 
-    // Simulate API Call delay
-    setTimeout(() => {
-      // Check Local DB instead of Mock Math Logic
-      const dbStr = localStorage.getItem('sicepu_students_db');
-      if (dbStr) {
-          const db = JSON.parse(dbStr);
-          // Find student by NISN and Date of Birth
-          // Mapping keys to what PapaParse usually gives (or fallback)
-          const student = db.find(s => {
-              const dbNisn = s['NISN'] || s['nisn'];
-              const dbDob = s['Tanggal Lahir'] || s['tgl_lahir'];
-              return dbNisn === nisn && dbDob === dob;
-          });
-
-          if (student) {
-              const statusStr = (student['Status'] || student['status'] || '').toUpperCase();
-              if (statusStr === 'LULUS') {
-                  // Keep data in sessionStorage to pass it directly to the success page UI
-                  sessionStorage.setItem('current_student', JSON.stringify(student));
-                  window.location.href = '/result-pass.html';
-              } else {
-                  window.location.href = '/result-fail.html';
-              }
-          } else {
-             // Not found fallback
-             btn.removeAttribute('disabled');
-             btnIcon.style.display = 'inline-block';
-             spinnerIcon.style.display = 'none';
-             btnText.innerText = 'DATA TIDAK DITEMUKAN';
-             setTimeout(() => btnText.innerText = 'CEK HASIL', 2000);
-          }
+    fetch('http://127.0.0.1:3000/api/students/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nisn, dob })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.data) {
+        const student = data.data;
+        if (student.status === 'LULUS') {
+          sessionStorage.setItem('current_student', JSON.stringify(student));
+          window.location.href = '/result-pass.html';
+        } else {
+          window.location.href = '/result-fail.html';
+        }
       } else {
-           // Fallback to simple logic if no DB set yet by admin
-          const lastDigit = parseInt(nisn.slice(-1), 10);
-          if (!isNaN(lastDigit) && lastDigit % 2 === 0) {
-            window.location.href = '/result-pass.html';
-          } else {
-            window.location.href = '/result-fail.html';
-          }
+        btn.removeAttribute('disabled');
+        btnIcon.style.display = 'inline-block';
+        spinnerIcon.style.display = 'none';
+        btnText.innerText = 'DATA TIDAK DITEMUKAN';
+        setTimeout(() => btnText.innerText = 'CEK HASIL', 2000);
       }
-    }, 1500);
+    })
+    .catch(err => {
+        console.error(err);
+        btn.removeAttribute('disabled');
+        btnIcon.style.display = 'inline-block';
+        spinnerIcon.style.display = 'none';
+        btnText.innerText = 'TERJADI KESALAHAN';
+        setTimeout(() => btnText.innerText = 'CEK HASIL', 2000);
+    });
 
   });
 

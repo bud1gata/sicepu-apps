@@ -36,16 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFiles(files);
     });
 
-    fileInput.addEventListener('change', function() {
+    fileInput.addEventListener('change', function () {
         handleFiles(this.files);
     });
 
     // --- File Handling ---
     function handleFiles(files) {
         if (files.length === 0) return;
-        
+
         const file = files[0];
-        
+
         // Check if CSV
         if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
             showStatus('Error: Harap unggah file berformat CSV.', 'danger');
@@ -59,17 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
-            complete: function(results) {
-                if(results.errors.length > 0) {
-                     showStatus(`Parsing Error: ${results.errors[0].message}`, 'danger');
-                     return;
+            complete: function (results) {
+                if (results.errors.length > 0) {
+                    showStatus(`Parsing Error: ${results.errors[0].message}`, 'danger');
+                    return;
                 }
-                
+
                 parsedData = results.data;
                 renderPreview(parsedData);
                 showStatus(`Berhasil membaca ${parsedData.length} data. Periksa preview di bawah sebelum menyimpan.`, 'success');
             },
-            error: function(err) {
+            error: function (err) {
                 showStatus(`Gagal membaca file: ${err.message}`, 'danger');
             }
         });
@@ -79,14 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderPreview(data) {
         previewBody.innerHTML = '';
         rowCount.innerText = data.length;
-        
+
         // Only show first 100 rows for preview performance
         const previewLimit = Math.min(data.length, 100);
-        
+
         for (let i = 0; i < previewLimit; i++) {
             const row = data[i];
             const tr = document.createElement('tr');
-            
+
             // Map CSV columns securely. Fallback to empty string if column doesn't match perfectly.
             const nisn = row['NISN'] || row['nisn'] || '-';
             const nama = row['Nama Siswa'] || row['nama'] || row['Nama'] || '-';
@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const mtk = row['Matematika'] || row['mtk'] || '-';
             const bing = row['B. Inggris'] || row['bing'] || '-';
             const status = (row['Status'] || row['status'] || '').toString().toUpperCase();
-            
+
             let statusBadge = `<span class="badge badge-success">LULUS</span>`;
-            if(status === 'TIDAK LULUS' || status === 'GAGAL' || status === 'TIDAK') {
+            if (status === 'TIDAK LULUS' || status === 'GAGAL' || status === 'TIDAK') {
                 statusBadge = `<span class="badge badge-danger">TIDAK LULUS</span>`;
             }
 
@@ -114,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             previewBody.appendChild(tr);
         }
-        
-        if(data.length > 100) {
+
+        if (data.length > 100) {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td colspan="8" style="text-align:center; color: var(--color-text-muted); padding: 1rem;">... and ${data.length - 100} more rows</td>`;
             previewBody.appendChild(tr);
@@ -128,12 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function showStatus(message, type) {
         uploadStatus.style.display = 'block';
         uploadStatus.innerText = message;
-        
+
         uploadStatus.style.background = 'rgba(255,255,255,0.1)';
         uploadStatus.style.color = 'var(--color-text)';
         uploadStatus.style.border = '1px solid var(--color-border)';
 
-        if(type === 'success') {
+        if (type === 'success') {
             uploadStatus.style.background = 'rgba(22, 163, 74, 0.2)';
             uploadStatus.style.color = 'var(--color-success)';
             uploadStatus.style.borderColor = 'var(--color-success)';
@@ -148,10 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadTemplateBtn.addEventListener('click', (e) => {
         e.preventDefault();
         // Create an example CSV
-        const csvContent = "NISN,Nama Siswa,Tanggal Lahir,Kelas,B. Indonesia,Matematika,B. Inggris,Status\n" +
-                           "0012345678,Ahmad Rizky Pratama,2007-05-14,XII IPA 1,85,78,82,LULUS\n" +
-                           "0056781234,Budi Santoso,2007-11-20,XII IPS 2,75,65,70,TIDAK LULUS";
-        
+        const csvContent = "NISN,Nama Siswa,Tanggal Lahir,Kelas,bind,mtk,bing,Status\n" +
+            "0012345678,Ahmad Rizky Pratama,2007-05-14,XII IPA 1,85,78,82,LULUS\n" +
+            "0056781234,Budi Santoso,2007-11-20,XII IPS 2,75,65,70,TIDAK LULUS";
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -164,8 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Mock Save to Database ---
     saveDataBtn.addEventListener('click', () => {
-        if(parsedData.length === 0) return;
-        
+        if (parsedData.length === 0) return;
+
         saveDataBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Menyimpan...';
         saveDataBtn.disabled = true;
         lucide.createIcons();
@@ -175,29 +175,29 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ students: parsedData })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showStatus(data.message || 'Data berhasil disave dan sinkronisasi selesai.', 'success');
-                saveDataBtn.innerHTML = '<i data-lucide="check" size="16"></i> Berhasil';
-            } else {
-                showStatus(data.message || 'Gagal menyimpan data ke server.', 'danger');
-                saveDataBtn.innerHTML = '<i data-lucide="x" size="16"></i> Gagal';
-            }
-            setTimeout(() => {
-                saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
-                saveDataBtn.disabled = false;
-                lucide.createIcons();
-            }, 3000);
-        })
-        .catch(err => {
-            showStatus('Error: ' + err.message, 'danger');
-            saveDataBtn.innerHTML = '<i data-lucide="alert-circle" size="16"></i> Error';
-            setTimeout(() => {
-                saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
-                saveDataBtn.disabled = false;
-                lucide.createIcons();
-            }, 3000);
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showStatus(data.message || 'Data berhasil disave dan sinkronisasi selesai.', 'success');
+                    saveDataBtn.innerHTML = '<i data-lucide="check" size="16"></i> Berhasil';
+                } else {
+                    showStatus(data.message || 'Gagal menyimpan data ke server.', 'danger');
+                    saveDataBtn.innerHTML = '<i data-lucide="x" size="16"></i> Gagal';
+                }
+                setTimeout(() => {
+                    saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
+                    saveDataBtn.disabled = false;
+                    lucide.createIcons();
+                }, 3000);
+            })
+            .catch(err => {
+                showStatus('Error: ' + err.message, 'danger');
+                saveDataBtn.innerHTML = '<i data-lucide="alert-circle" size="16"></i> Error';
+                setTimeout(() => {
+                    saveDataBtn.innerHTML = '<i data-lucide="save" size="16"></i> Simpan ke Database';
+                    saveDataBtn.disabled = false;
+                    lucide.createIcons();
+                }, 3000);
+            });
     });
 });

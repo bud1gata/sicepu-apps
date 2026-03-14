@@ -53,35 +53,35 @@ router.post('/upload', async (req, res) => {
     // Process mapping depending on varied keys
     const processedData = studentsData.map(s => {
       // Find keys case-insensitively
-       const getVal = (possibleKeys) => {
-          const key = Object.keys(s).find(k => possibleKeys.includes(k.toLowerCase()));
-          return key ? s[key] : null;
-       };
+      const getVal = (possibleKeys) => {
+        const key = Object.keys(s).find(k => possibleKeys.includes(k.toLowerCase()));
+        return key ? s[key] : null;
+      };
 
-       const bindo = parseFloat(getVal(['b. indo', 'b.indo', 'bahasa indonesia', 'bindo', 'nilai_bindo'])) || 0;
-       const mtk = parseFloat(getVal(['mtk', 'matematika', 'nilai_mtk'])) || 0;
-       const bing = parseFloat(getVal(['b. ing', 'b.ing', 'bahasa inggris', 'bing', 'nilai_bing'])) || 0;
+      const bindo = parseFloat(getVal(['b. indo', 'b.indo', 'bahasa indonesia', 'bindo', 'bind', 'nilai_bindo'])) || 0;
+      const mtk = parseFloat(getVal(['mtk', 'matematika', 'nilai_mtk'])) || 0;
+      const bing = parseFloat(getVal(['b. ing', 'b.ing', 'bahasa inggris', 'bing', 'nilai_bing'])) || 0;
 
-       return {
-          nisn: getVal(['nisn']),
-          nama: getVal(['nama', 'nama siswa']),
-          tgl_lahir: getVal(['tanggal lahir', 'tgl lahir', 'tgl_lahir']),
-          kelas: getVal(['kelas']) || '',
-          nilai_bindo: bindo,
-          nilai_mtk: mtk,
-          nilai_bing: bing,
-          status: (getVal(['status']) || '').toUpperCase()
-       };
+      return {
+        nisn: getVal(['nisn']),
+        nama: getVal(['nama', 'nama siswa']),
+        tgl_lahir: getVal(['tanggal lahir', 'tgl lahir', 'tgl_lahir']),
+        kelas: getVal(['kelas']) || '',
+        nilai_bindo: bindo,
+        nilai_mtk: mtk,
+        nilai_bing: bing,
+        status: (getVal(['status']) || '').toUpperCase()
+      };
     }).filter(s => s.nisn && s.tgl_lahir && s.status); // Basic validation filter
 
-    if(processedData.length === 0) {
+    if (processedData.length === 0) {
       return res.status(400).json({ success: false, message: 'No valid records found to save' });
     }
 
     // Using insertMany with ordered: false to skip duplicates based on unique NISN
     // Or we could use updateOne with upsert depending on requirements.
     // For this case, let's use bulkWrite for upserts
-    
+
     const ops = processedData.map(doc => ({
       updateOne: {
         filter: { nisn: doc.nisn },
@@ -101,6 +101,56 @@ router.post('/upload', async (req, res) => {
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ success: false, message: 'Server Error: ' + error.message });
+  }
+});
+
+// @route   GET /api/students
+// @desc    Get all students (for admin)
+router.get('/', async (req, res) => {
+  try {
+    const students = await Student.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: students });
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// @route   PUT /api/students/:id
+// @desc    Update a student (for admin)
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedStudent = await Student.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    res.json({ success: true, data: updatedStudent, message: 'Data siswa berhasil diperbarui' });
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// @route   DELETE /api/students/:id
+// @desc    Delete a student (for admin)
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedStudent = await Student.findByIdAndDelete(req.params.id);
+
+    if (!deletedStudent) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    res.json({ success: true, message: 'Data siswa berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
 

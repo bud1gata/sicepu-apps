@@ -6,6 +6,7 @@
   <title>Admin Dashboard - SICEPU</title>
   <link rel="stylesheet" href="/src/styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/js/auth-guard.js"></script>
   <style>
     .admin-layout {
       display: flex;
@@ -161,7 +162,7 @@
       </a>
     </nav>
     <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
-      <a href="/index.html" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;">
+      <a href="#" id="logout-btn" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;" onclick="sessionStorage.removeItem('admin_token'); window.location.href='/admin/login.html';">
         <i data-lucide="log-out"></i> Logout
       </a>
     </div>
@@ -178,33 +179,27 @@
     <div class="stat-grid">
       <div class="stat-card">
         <h3>Total Siswa</h3>
-        <div class="value">1250</div>
+        <div class="value" id="stat-total">-</div>
       </div>
       <div class="stat-card border-success">
         <h3>Sudah Cek</h3>
-        <div class="value text-success">982</div>
+        <div class="value text-success" id="stat-checked">-</div>
       </div>
       <div class="stat-card">
         <h3>Success Rate Lulus</h3>
-        <div class="value text-primary">78%</div>
+        <div class="value text-primary" id="stat-rate">-</div>
       </div>
       <div class="stat-card border-warning">
         <h3>Belum Cek</h3>
-        <div class="value text-warning">268</div>
+        <div class="value text-warning" id="stat-unchecked">-</div>
       </div>
     </div>
 
     <!-- Chart -->
     <div class="chart-container">
       <h3 class="text-white mb-2"><i data-lucide="activity" style="display:inline; vertical-align:middle; margin-right:8px;"></i> Grafik Akses Per Jam</h3>
-      <div class="bar-chart">
-        <div class="bar" style="height: 10%;"></div>
-        <div class="bar" style="height: 25%;"></div>
-        <div class="bar" style="height: 60%;"></div>
-        <div class="bar" style="height: 100%;"></div>
-        <div class="bar" style="height: 80%;"></div>
-        <div class="bar" style="height: 40%;"></div>
-        <div class="bar" style="height: 15%;"></div>
+      <div class="bar-chart" id="bar-chart">
+        <!-- Bars will be populated via JS -->
       </div>
     </div>
 
@@ -224,25 +219,8 @@
             <th>IP Address</th>
           </tr>
         </thead>
-        <tbody class="text-white">
-          <tr>
-            <td>14:32:05</td>
-            <td>0012345678</td>
-            <td><span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span></td>
-            <td>192.168.1.1</td>
-          </tr>
-          <tr>
-            <td>14:31:40</td>
-            <td>0056781234</td>
-            <td><span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span></td>
-            <td>192.168.1.2</td>
-          </tr>
-          <tr>
-            <td>14:30:12</td>
-            <td>0090123456</td>
-            <td><span class="text-danger"><i data-lucide="x-circle" size="14"></i> Tidak Lulus</span></td>
-            <td>192.168.1.3</td>
-          </tr>
+        <tbody class="text-white" id="log-body">
+          <tr><td colspan="4" style="text-align:center; color: var(--color-text-muted);">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -250,13 +228,86 @@
   </main>
 
   <script>
+    const API_BASE = 'http://127.0.0.1:3000/api/dashboard';
+
     lucide.createIcons();
-    
+
     // Live timer
     setInterval(() => {
-        const now = new Date();
-        document.getElementById('current-time').innerText = now.toLocaleString('id-ID');
+      const now = new Date();
+      document.getElementById('current-time').innerText = now.toLocaleString('id-ID');
     }, 1000);
+
+    // Fetch stats
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/stats`);
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          document.getElementById('stat-total').innerText = d.totalStudents;
+          document.getElementById('stat-checked').innerText = d.sudahCek;
+          document.getElementById('stat-rate').innerText = d.passRate + '%';
+          document.getElementById('stat-unchecked').innerText = d.belumCek;
+        }
+      } catch (e) { console.error('Stats error', e); }
+    }
+
+    // Fetch logs
+    async function loadLogs() {
+      try {
+        const res = await fetch(`${API_BASE}/logs`);
+        const json = await res.json();
+        const tbody = document.getElementById('log-body');
+        if (json.success && json.data.length > 0) {
+          tbody.innerHTML = json.data.map(log => {
+            const time = new Date(log.createdAt).toLocaleTimeString('id-ID');
+            const isLulus = log.status === 'LULUS';
+            const isNotFound = log.status === 'NOT_FOUND';
+            let badge = '';
+            if (isNotFound) {
+              badge = `<span class="text-muted"><i data-lucide="help-circle" size="14"></i> Not Found</span>`;
+            } else if (isLulus) {
+              badge = `<span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span>`;
+            } else {
+              badge = `<span class="text-danger"><i data-lucide="x-circle" size="14"></i> Tidak Lulus</span>`;
+            }
+            return `<tr><td>${time}</td><td>${log.nisn}</td><td>${badge}</td><td>${log.ip}</td></tr>`;
+          }).join('');
+          lucide.createIcons();
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--color-text-muted);">Belum ada log akses.</td></tr>';
+        }
+      } catch (e) { console.error('Logs error', e); }
+    }
+
+    // Fetch hourly chart
+    async function loadHourly() {
+      try {
+        const res = await fetch(`${API_BASE}/hourly`);
+        const json = await res.json();
+        const chart = document.getElementById('bar-chart');
+        if (json.success) {
+          const max = Math.max(...json.data.map(h => h.count), 1);
+          chart.innerHTML = json.data.map(h => {
+            const pct = Math.max((h.count / max) * 100, 2);
+            return `<div class="bar" style="height: ${pct}%;" title="${h.hour}:00 - ${h.count} akses"></div>`;
+          }).join('');
+        }
+      } catch (e) { console.error('Hourly error', e); }
+    }
+
+    // Refresh button
+    document.querySelector('.btn').addEventListener('click', () => {
+      loadStats();
+      loadLogs();
+      loadHourly();
+    });
+
+    // Initial load
+    loadStats();
+    loadLogs();
+    loadHourly();
   </script>
 </body>
 </html>

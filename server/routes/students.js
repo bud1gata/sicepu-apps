@@ -1,5 +1,6 @@
 import express from 'express';
 import Student from '../models/student.js';
+import AccessLog from '../models/accessLog.js';
 
 const router = express.Router();
 
@@ -13,12 +14,20 @@ router.post('/search', async (req, res) => {
       return res.status(400).json({ success: false, message: 'NISN and Date of Birth are required' });
     }
 
+    // Get client IP
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '0.0.0.0';
+
     // Try finding by NISN and DOB
     const student = await Student.findOne({ nisn, tgl_lahir: dob });
 
     if (!student) {
+      // Log failed search
+      await AccessLog.create({ nisn, status: 'NOT_FOUND', ip });
       return res.status(404).json({ success: false, message: 'Data tidak ditemukan' });
     }
+
+    // Log successful search
+    await AccessLog.create({ nisn, status: student.status, ip });
 
     res.json({
       success: true,

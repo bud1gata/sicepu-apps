@@ -35,7 +35,7 @@
       <h2 class="text-white">Panel Administrator</h2>
     </div>
 
-    <form action="/admin/dashboard.html">
+    <form id="login-form">
       <div class="mb-4">
         <label class="form-label text-sm text-white" for="username">Username:</label>
         <div style="position: relative;">
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <div class="mb-6">
+      <div class="mb-4">
         <label class="form-label text-sm text-white" for="password">Password:</label>
         <div style="position: relative;">
           <input type="password" id="password" class="form-control" style="padding-left: 2.5rem;" required>
@@ -52,7 +52,9 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary w-full">
+      <div id="error-msg" style="display:none; color: var(--color-danger); font-size: 0.875rem; margin-bottom: 1rem; text-align: center;"></div>
+
+      <button type="submit" id="login-btn" class="btn btn-primary w-full">
         <i data-lucide="log-in"></i> MASUK
       </button>
     </form>
@@ -64,6 +66,45 @@
 
   <script>
     lucide.createIcons();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const errorMsg = document.getElementById('error-msg');
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      errorMsg.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> MEMPROSES...';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('http://127.0.0.1:3000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          sessionStorage.setItem('admin_token', data.token);
+          window.location.href = '/admin/dashboard.html';
+        } else {
+          errorMsg.innerText = data.message || 'Login gagal';
+          errorMsg.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="log-in"></i> MASUK';
+          lucide.createIcons();
+        }
+      } catch (err) {
+        errorMsg.innerText = 'Terjadi kesalahan koneksi ke server';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="log-in"></i> MASUK';
+        lucide.createIcons();
+      }
+    });
   </script>
 </body>
 </html>

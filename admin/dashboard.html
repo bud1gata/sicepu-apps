@@ -6,7 +6,6 @@
   <title>Admin Dashboard - SICEPU</title>
   <link rel="stylesheet" href="/src/styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="/admin/js/auth-guard.js"></script>
   <style>
     .admin-layout {
       display: flex;
@@ -207,7 +206,7 @@
     <div class="chart-container">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 class="text-white"><i data-lucide="list" style="display:inline; vertical-align:middle; margin-right:8px;"></i> Log Akses Terakhir</h3>
-        <button class="btn" style="padding: var(--space-2) var(--space-3); background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text);">Refresh</button>
+        <button id="refresh-btn" class="btn" style="padding: var(--space-2) var(--space-3); background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text);">Refresh</button>
       </div>
       
       <table class="log-table">
@@ -298,7 +297,7 @@
     }
 
     // Refresh button
-    document.querySelector('.btn').addEventListener('click', () => {
+    document.getElementById('refresh-btn').addEventListener('click', () => {
       loadStats();
       loadLogs();
       loadHourly();
@@ -309,5 +308,6 @@
     loadLogs();
     loadHourly();
   </script>
+  <script src="/admin/js/auth-guard.js"></script>
 </body>
 </html>

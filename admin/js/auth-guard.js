@@ -23,8 +23,8 @@
       window.location.href = '/admin/login.html';
     }
   } catch (err) {
-    // If server is down, redirect to login
-    sessionStorage.removeItem('admin_token');
-    window.location.href = '/admin/login.html';
+    // If server is unreachable, don't redirect — just log it.
+    // This prevents redirect loops when the backend is loading.
+    console.warn('Auth verification failed (server may be starting):', err.message);
   }
 })();

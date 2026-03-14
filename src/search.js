@@ -30,8 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       if (data.success && data.data) {
         const student = data.data;
+        sessionStorage.setItem('current_student', JSON.stringify(student));
+        
         if (student.status === 'LULUS') {
-          sessionStorage.setItem('current_student', JSON.stringify(student));
           window.location.href = '/result-pass.html';
         } else {
           window.location.href = '/result-fail.html';

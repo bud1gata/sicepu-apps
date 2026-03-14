@@ -75,7 +75,7 @@
     </div>
 
     <div class="empathic-message">
-      <p><strong>Kami turut prihatin.</strong></p>
+      <p><strong>Kami turut prihatin, <span id="student-name">Siswa</span>.</strong></p>
       <p class="mt-2">Jangan menyerah, kegagalan bukan akhir dari segalanya. Masa depanmu masih sangat panjang. Silakan hubungi pihak Bimbingan Konseling atau Wali Kelas untuk informasi lebih lanjut mengenai opsi yang tersedia.</p>
     </div>
 
@@ -94,6 +94,18 @@
 
   <script>
     lucide.createIcons();
+
+    // Load student data
+    document.addEventListener('DOMContentLoaded', () => {
+      const studentData = sessionStorage.getItem('current_student');
+      if (!studentData) {
+        window.location.href = '/index.html';
+        return;
+      }
+
+      const student = JSON.parse(studentData);
+      document.getElementById('student-name').innerText = student.nama || 'Siswa';
+    });
   </script>
 </body>
 </html>

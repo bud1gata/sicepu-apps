@@ -54,10 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
                 
+                // Get NISN for filename and QR
+                const studentData = sessionStorage.getItem('current_student');
+                const student = studentData ? JSON.parse(studentData) : {};
+                const nisn = student.nisn || '0000000000';
+
                 // Generate QR code for the SKL
                 // We'll insert the QR image via dataurl onto the PDF directly
                 import('qrcode').then(QRCode => {
-                    QRCode.default.toDataURL('https://sicepu.contoh.sch.id/verify/0012345678', {
+                    QRCode.default.toDataURL(`https://sicepu.contoh.sch.id/verify/${nisn}`, {
                         width: 100,
                         margin: 1,
                         color: {
@@ -75,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             pdf.text('Scan for Verification', 160, 285);
                         }
                         
-                        pdf.save('SKL_0012345678.pdf');
+                        pdf.save(`SKL_${nisn}.pdf`);
                         
                         // Restore button
                         downloadBtn.innerHTML = originalText;

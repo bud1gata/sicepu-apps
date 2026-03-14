@@ -120,9 +120,9 @@
     </div>
 
     <div class="mhs-info">
-      <p class="text-white"><strong>Nama :</strong> Ahmad Rizky Pratama</p>
-      <p class="text-white mt-2"><strong>NISN :</strong> 0012345678</p>
-      <p class="text-white mt-2"><strong>Kelas :</strong> XII IPA 2</p>
+      <p class="text-white"><strong>Nama :</strong> <span id="student-name">Ahmad Rizky Pratama</span></p>
+      <p class="text-white mt-2"><strong>NISN :</strong> <span id="student-nisn">0012345678</span></p>
+      <p class="text-white mt-2"><strong>Kelas :</strong> <span id="student-kelas">XII IPA 2</span></p>
     </div>
 
     <div class="table-responsive">
@@ -134,21 +134,21 @@
             <th>Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="grades-body">
           <tr>
             <td class="text-white">Bahasa Indonesia</td>
-            <td class="text-white">85</td>
-            <td class="text-success">Kompeten</td>
+            <td class="text-white" id="grade-bindo">85</td>
+            <td class="text-success" id="status-bindo">Kompeten</td>
           </tr>
           <tr>
             <td class="text-white">Matematika</td>
-            <td class="text-white">78</td>
-            <td class="text-success">Kompeten</td>
+            <td class="text-white" id="grade-mtk">78</td>
+            <td class="text-success" id="status-mtk">Kompeten</td>
           </tr>
           <tr>
             <td class="text-white">Bahasa Inggris</td>
-            <td class="text-white">82</td>
-            <td class="text-success">Kompeten</td>
+            <td class="text-white" id="grade-bing">82</td>
+            <td class="text-success" id="status-bing">Kompeten</td>
           </tr>
         </tbody>
       </table>
@@ -200,6 +200,36 @@
         requestAnimationFrame(frame);
       }
     }());
+
+    // Load student data
+    document.addEventListener('DOMContentLoaded', () => {
+      const studentData = sessionStorage.getItem('current_student');
+      if (!studentData) {
+        window.location.href = '/index.html';
+        return;
+      }
+
+      const student = JSON.parse(studentData);
+      document.getElementById('student-name').innerText = student.nama || '-';
+      document.getElementById('student-nisn').innerText = student.nisn || '-';
+      document.getElementById('student-kelas').innerText = student.kelas || '-';
+
+      const updateGrade = (subject, score) => {
+        document.getElementById(`grade-${subject}`).innerText = score !== undefined ? score : '-';
+        const statusElem = document.getElementById(`status-${subject}`);
+        if(score >= 75) {
+          statusElem.innerText = 'Kompeten';
+          statusElem.className = 'text-success';
+        } else {
+          statusElem.innerText = 'Belum Kompeten';
+          statusElem.className = 'text-danger';
+        }
+      };
+
+      updateGrade('bindo', student.nilai_bindo);
+      updateGrade('mtk', student.nilai_mtk);
+      updateGrade('bing', student.nilai_bing);
+    });
   </script>
 </body>
 </html>

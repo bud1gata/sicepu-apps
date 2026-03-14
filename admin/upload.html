@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Data Siswa - SICEPU Admin</title>
+  <link rel="stylesheet" href="/src/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+      background: var(--color-bg);
+    }
+    
+    .sidebar {
+      width: 250px;
+      background: var(--color-bg-card);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    
+    .sidebar-header {
+      padding: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--space-4) 0;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-6);
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--color-primary);
+      border-right: 3px solid var(--color-primary);
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: var(--space-8);
+      overflow-y: auto;
+    }
+
+    /* Drag and Drop Upload Area */
+    .upload-area {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      text-align: center;
+      background: var(--color-bg-card);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--color-primary);
+      background: rgba(37, 99, 235, 0.05);
+    }
+
+    .upload-area i {
+      color: var(--color-primary);
+      margin-bottom: var(--space-4);
+      width: 64px;
+      height: 64px;
+    }
+
+    #file-input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .table-container {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-top: var(--space-8);
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--space-4);
+    }
+    
+    .data-table th, .data-table td {
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+    }
+    
+    .data-table th {
+      color: var(--color-text-muted);
+      font-weight: 500;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: var(--text-xs);
+      font-weight: 600;
+    }
+
+    .badge-success { background: rgba(22, 163, 74, 0.2); color: var(--color-success); }
+    .badge-danger { background: rgba(220, 38, 38, 0.2); color: var(--color-danger); }
+  </style>
+</head>
+<body class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i data-lucide="shield" class="text-primary"></i>
+      <h2 class="text-white text-lg">SICEPU Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </a>
+      <a href="/admin/upload.html" class="nav-item active">
+        <i data-lucide="upload-cloud"></i> Upload Data
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="clock"></i> Pengaturan Waktu
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="list"></i> Log Akses
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="settings"></i> Pengaturan Umum
+      </a>
+    </nav>
+    <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
+      <a href="/index.html" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div style="margin-bottom: var(--space-8);">
+      <h1 class="text-white">Upload Data Kelulusan</h1>
+      <p>Unggah file berformat CSV yang berisi data siswa, nilai, dan status kelulusan.</p>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="drop-zone">
+      <i data-lucide="file-spreadsheet"></i>
+      <h2 class="text-white mb-2">Drag & Drop file CSV di sini</h2>
+      <p class="mb-4">atau klik untuk memilih file</p>
+      <input type="file" id="file-input" accept=".csv" />
+      
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; position: relative; z-index: 10;">
+        <a href="#" id="download-template" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+          <i data-lucide="download" size="16"></i> Download Template CSV
+        </a>
+      </div>
+    </div>
+
+    <!-- Status Message -->
+    <div id="upload-status" style="margin-top: 1rem; padding: 1rem; border-radius: 0.5rem; display: none;"></div>
+
+    <!-- Preview Table -->
+    <div class="table-container" id="preview-container" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+         <h3 class="text-white"><i data-lucide="table" style="display:inline; vertical-align:middle; margin-right:8px;"></i> Preview Data (<span id="row-count">0</span> baris)</h3>
+         <button id="save-data-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+           <i data-lucide="save" size="16"></i> Simpan ke Database
+         </button>
+      </div>
+      
+      <table class="data-table" id="preview-table">
+        <thead>
+          <tr>
+            <th>NISN</th>
+            <th>Nama Siswa</th>
+            <th>Tgl Lahir</th>
+            <th>Kelas</th>
+            <th>B. Indo</th>
+            <th>MTK</th>
+            <th>B. Ing</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody class="text-white" id="preview-body">
+          <!-- Rows will be populated via JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script src="/admin/js/upload.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

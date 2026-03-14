@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - SICEPU</title>
+  <link rel="stylesheet" href="/src/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+      background: var(--color-bg);
+    }
+    
+    .sidebar {
+      width: 250px;
+      background: var(--color-bg-card);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    
+    .sidebar-header {
+      padding: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--space-4) 0;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-6);
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--color-primary);
+      border-right: 3px solid var(--color-primary);
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: var(--space-8);
+      overflow-y: auto;
+    }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-8);
+    }
+    
+    .stat-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+    }
+    
+    .stat-card h3 {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      font-weight: 500;
+      margin-bottom: var(--space-2);
+    }
+    
+    .stat-card .value {
+      font-size: var(--text-3xl);
+      font-weight: 800;
+      color: var(--color-text);
+    }
+    
+    .chart-container {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    
+    /* CSS Bar Chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      height: 200px;
+      gap: 10px;
+      margin-top: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: var(--space-2);
+    }
+    
+    .bar {
+      flex: 1;
+      background: var(--color-primary);
+      border-radius: 4px 4px 0 0;
+      transition: height 1s ease-out;
+      position: relative;
+    }
+    
+    .bar:hover {
+      background: var(--color-primary-dark);
+    }
+    
+    .log-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--space-4);
+    }
+    
+    .log-table th, .log-table td {
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+    }
+    
+    .log-table th {
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i data-lucide="shield" class="text-primary"></i>
+      <h2 class="text-white text-lg">SICEPU Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="upload-cloud"></i> Upload Data
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="clock"></i> Pengaturan Waktu
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="list"></i> Log Akses
+      </a>
+      <a href="#" class="nav-item">
+        <i data-lucide="settings"></i> Pengaturan Umum
+      </a>
+    </nav>
+    <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
+      <a href="/index.html" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8);">
+      <h1 class="text-white">Dashboard Overview</h1>
+      <span class="text-muted text-sm" id="current-time"></span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <h3>Total Siswa</h3>
+        <div class="value">1250</div>
+      </div>
+      <div class="stat-card border-success">
+        <h3>Sudah Cek</h3>
+        <div class="value text-success">982</div>
+      </div>
+      <div class="stat-card">
+        <h3>Success Rate Lulus</h3>
+        <div class="value text-primary">78%</div>
+      </div>
+      <div class="stat-card border-warning">
+        <h3>Belum Cek</h3>
+        <div class="value text-warning">268</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-container">
+      <h3 class="text-white mb-2"><i data-lucide="activity" style="display:inline; vertical-align:middle; margin-right:8px;"></i> Grafik Akses Per Jam</h3>
+      <div class="bar-chart">
+        <div class="bar" style="height: 10%;"></div>
+        <div class="bar" style="height: 25%;"></div>
+        <div class="bar" style="height: 60%;"></div>
+        <div class="bar" style="height: 100%;"></div>
+        <div class="bar" style="height: 80%;"></div>
+        <div class="bar" style="height: 40%;"></div>
+        <div class="bar" style="height: 15%;"></div>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="chart-container">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="text-white"><i data-lucide="list" style="display:inline; vertical-align:middle; margin-right:8px;"></i> Log Akses Terakhir</h3>
+        <button class="btn" style="padding: var(--space-2) var(--space-3); background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text);">Refresh</button>
+      </div>
+      
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>NISN</th>
+            <th>Status Cek</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody class="text-white">
+          <tr>
+            <td>14:32:05</td>
+            <td>0012345678</td>
+            <td><span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span></td>
+            <td>192.168.1.1</td>
+          </tr>
+          <tr>
+            <td>14:31:40</td>
+            <td>0056781234</td>
+            <td><span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span></td>
+            <td>192.168.1.2</td>
+          </tr>
+          <tr>
+            <td>14:30:12</td>
+            <td>0090123456</td>
+            <td><span class="text-danger"><i data-lucide="x-circle" size="14"></i> Tidak Lulus</span></td>
+            <td>192.168.1.3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+    
+    // Live timer
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('current-time').innerText = now.toLocaleString('id-ID');
+    }, 1000);
+  </script>
+</body>
+</html>

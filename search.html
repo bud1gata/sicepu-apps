@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pencarian Hasil - SICEPU</title>
+  <link rel="stylesheet" href="/src/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .search-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--space-4);
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+    }
+    
+    .form-container {
+      width: 100%;
+      max-width: 450px;
+    }
+    
+    .form-group {
+      margin-bottom: var(--space-4);
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: var(--space-2);
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      font-size: var(--text-base);
+      transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
+    }
+    
+    .loading-spinner {
+      display: none;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="search-page">
+
+  <div class="glass form-container p-8" style="padding: 2rem; border-radius: 1rem;">
+    <div class="text-center mb-6">
+      <i data-lucide="graduation-cap" class="text-primary mb-2" style="width: 48px; height: 48px;"></i>
+      <h2 class="text-white">MASUKKAN DATA ANDA</h2>
+    </div>
+
+    <form id="search-form">
+      <div class="form-group">
+        <label class="form-label" for="nisn">NISN:</label>
+        <input type="text" id="nisn" class="form-control" placeholder="Contoh: 0012345678" required autocomplete="off" />
+      </div>
+
+      <div class="form-group mb-6">
+        <label class="form-label" for="dob">Tanggal Lahir (Verifikasi):</label>
+        <input type="date" id="dob" class="form-control" required />
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn btn-primary w-full">
+        <i data-lucide="search" id="btn-icon"></i>
+        <i data-lucide="loader-2" class="loading-spinner" id="spinner-icon"></i>
+        <span id="btn-text">CEK HASIL</span>
+      </button>
+    </form>
+
+    <div class="text-center mt-6">
+      <p class="text-xs mb-4">
+        <i data-lucide="shield-check" size="14" class="text-success" style="vertical-align: middle;"></i>
+        Data Anda dilindungi dan tidak akan dibagikan ke pihak ketiga.
+      </p>
+      
+      <a href="/index.html" class="text-primary" style="text-decoration: none; font-size: var(--text-sm); display: inline-flex; align-items: center; gap: 0.25rem;">
+        <i data-lucide="arrow-left" size="16"></i> Kembali ke Beranda
+      </a>
+    </div>
+  </div>
+
+  <script type="module" src="/src/search.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -75,4 +75,4 @@ Admin dapat memperbarui data menggunakan **File .CSV (*Comma Separated Values*)*
 6. Data siap diakses oleh siswa melalui fitur pencarian (`search.html`)!
 
 ---
-*© 2026 SICEPU v1.0 - Build with dedication.*
+*© 2026 SICEPU v1.0 - Build with dedication by bud1gata and friends AI, xixixixi*

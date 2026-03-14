@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengaturan Waktu - SICEPU Admin</title>
+  <link rel="stylesheet" href="/src/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/src/admin-styles.css">
+</head>
+<body class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i data-lucide="shield" class="text-primary"></i>
+      <h2 class="text-white text-lg">SICEPU Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </a>
+      <a href="/admin/upload.html" class="nav-item">
+        <i data-lucide="upload-cloud"></i> Upload Data
+      </a>
+      <a href="/admin/settings-time.html" class="nav-item active">
+        <i data-lucide="clock"></i> Pengaturan Waktu
+      </a>
+      <a href="/admin/logs.html" class="nav-item">
+        <i data-lucide="list"></i> Log Akses
+      </a>
+      <a href="/admin/settings-general.html" class="nav-item">
+        <i data-lucide="settings"></i> Pengaturan Umum
+      </a>
+    </nav>
+    <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
+      <a href="#" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;" onclick="sessionStorage.removeItem('admin_token'); window.location.href='/admin/login.html';">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h1 class="text-white" style="margin-bottom: var(--space-8);">Pengaturan Waktu Pengumuman</h1>
+
+    <div class="settings-card">
+      <p class="text-muted" style="margin-bottom: var(--space-6); line-height: 1.5;">
+        Atur tanggal dan waktu kapan siswa dapat mulai mengecek kelulusan mereka. 
+        Sebelum waktu ini tercapai, tombol cek akan dikunci dan hitung mundur akan ditampilkan di halaman utama.
+      </p>
+
+      <form id="time-form">
+        <div class="form-group">
+          <label for="datetime">Tanggal & Waktu Buka</label>
+          <input type="datetime-local" id="datetime" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="save-btn" style="margin-top: var(--space-4);">
+          <i data-lucide="save"></i> SIMPAN PENGATURAN
+        </button>
+
+        <div id="alert-msg" class="alert"></div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    const API_BASE = 'http://127.0.0.1:3000/api/settings';
+
+    // Fetch existing setting
+    async function loadSetting() {
+      try {
+        const res = await fetch(`${API_BASE}/announcement_time`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          // Input datetime-local expects standard YYYY-MM-DDThh:mm format
+          const date = new Date(json.data);
+          // Needs timezone adjustment for local input
+          const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+          const localISOUrl = (new Date(date - tzOffset)).toISOString().slice(0, 16);
+          document.getElementById('datetime').value = localISOUrl;
+        }
+      } catch (e) {
+        console.error('Failed to load setting', e);
+      }
+    }
+
+    document.getElementById('time-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = document.getElementById('save-btn');
+      const alertElem = document.getElementById('alert-msg');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> MENYIMPAN...';
+      lucide.createIcons();
+
+      // Convert local input to standard ISO string
+      const localValue = document.getElementById('datetime').value;
+      const isoValue = new Date(localValue).toISOString();
+
+      try {
+        const res = await fetch(`${API_BASE}/announcement_time`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: isoValue })
+        });
+        
+        const json = await res.json();
+        
+        alertElem.style.display = 'block';
+        if (json.success) {
+          alertElem.className = 'alert success';
+          alertElem.innerText = '✅ Waktu pengumuman berhasil diperbarui!';
+        } else {
+          alertElem.className = 'alert error';
+          alertElem.innerText = '❌ Gagal: ' + json.message;
+        }
+      } catch (err) {
+        alertElem.style.display = 'block';
+        alertElem.className = 'alert error';
+        alertElem.innerText = '❌ Terjadi kesalahan jaringan';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> SIMPAN PENGATURAN';
+        lucide.createIcons();
+        
+        // Hide alert after 3 seconds
+        setTimeout(() => alertElem.style.display = 'none', 3000);
+      }
+    });
+
+    loadSetting();
+  </script>
+</body>
+</html>

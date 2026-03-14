@@ -8,59 +8,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/admin/js/auth-guard.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <link rel="stylesheet" href="/src/admin-styles.css">
   <style>
-    .admin-layout {
-      display: flex;
-      min-height: 100vh;
-      background: var(--color-bg);
-    }
-    
-    .sidebar {
-      width: 250px;
-      background: var(--color-bg-card);
-      border-right: 1px solid var(--color-border);
-      display: flex;
-      flex-direction: column;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-    }
-    
-    .sidebar-header {
-      padding: var(--space-6);
-      border-bottom: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-    
-    .sidebar-nav {
-      flex: 1;
-      padding: var(--space-4) 0;
-    }
-    
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-6);
-      color: var(--color-text-muted);
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    
-    .nav-item:hover, .nav-item.active {
-      background: rgba(37, 99, 235, 0.1);
-      color: var(--color-primary);
-      border-right: 3px solid var(--color-primary);
-    }
-    
-    .main-content {
-      flex: 1;
-      padding: var(--space-8);
-      overflow-y: auto;
-    }
-
     /* Drag and Drop Upload Area */
     .upload-area {
       border: 2px dashed var(--color-border);
@@ -152,18 +101,18 @@
       <a href="/admin/upload.html" class="nav-item active">
         <i data-lucide="upload-cloud"></i> Upload Data
       </a>
-      <a href="#" class="nav-item">
+      <a href="/admin/settings-time.html" class="nav-item">
         <i data-lucide="clock"></i> Pengaturan Waktu
       </a>
-      <a href="#" class="nav-item">
+      <a href="/admin/logs.html" class="nav-item">
         <i data-lucide="list"></i> Log Akses
       </a>
-      <a href="#" class="nav-item">
+      <a href="/admin/settings-general.html" class="nav-item">
         <i data-lucide="settings"></i> Pengaturan Umum
       </a>
     </nav>
     <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
-      <a href="/index.html" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;">
+      <a href="#" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;" onclick="sessionStorage.removeItem('admin_token'); window.location.href='/admin/login.html';">
         <i data-lucide="log-out"></i> Logout
       </a>
     </div>

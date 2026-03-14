@@ -5,6 +5,7 @@ import connectDB from './db.js';
 import studentRoutes from './routes/students.js';
 import dashboardRoutes from './routes/dashboard.js';
 import authRoutes from './routes/auth.js';
+import settingsRoutes from './routes/settings.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use('/api/students', studentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {

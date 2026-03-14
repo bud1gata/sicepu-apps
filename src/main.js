@@ -2,11 +2,32 @@
 
 /**
  * Timer Settings
- * If the date is past, the button activates.
+ * Fetched from backend dynamically.
  */
-const TARGET_DATE = new Date("2026-03-15T10:00:00+07:00").getTime(); // Set to future date to show timer
+let TARGET_DATE = new Date().getTime() + (1000 * 60 * 60 * 24); // Fallback: 1 day in future
+let isTimerLoaded = false;
+
+async function loadTimerSettings() {
+  try {
+    const res = await fetch('http://127.0.0.1:3000/api/settings/announcement_time');
+    const json = await res.json();
+    if (json.success && json.data) {
+      TARGET_DATE = new Date(json.data).getTime();
+    }
+  } catch (err) {
+    console.error('Failed to fetch timer settings, using fallback');
+  } finally {
+    isTimerLoaded = true;
+    updateCountdown(); // force update once loaded
+  }
+}
+
+// Start fetching immediately
+loadTimerSettings();
 
 function updateCountdown() {
+  if (!isTimerLoaded) return; // wait until we know the target date
+
   const now = new Date().getTime();
   const distance = TARGET_DATE - now;
 

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log Akses - SICEPU Admin</title>
+  <link rel="stylesheet" href="/src/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/admin/js/auth-guard.js"></script>
+  <link rel="stylesheet" href="/src/admin-styles.css">
+</head>
+<body class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i data-lucide="shield" class="text-primary"></i>
+      <h2 class="text-white text-lg">SICEPU Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/admin/dashboard.html" class="nav-item">
+        <i data-lucide="layout-dashboard"></i> Dashboard
+      </a>
+      <a href="/admin/upload.html" class="nav-item">
+        <i data-lucide="upload-cloud"></i> Upload Data
+      </a>
+      <a href="/admin/settings-time.html" class="nav-item">
+        <i data-lucide="clock"></i> Pengaturan Waktu
+      </a>
+      <a href="/admin/logs.html" class="nav-item active">
+        <i data-lucide="list"></i> Log Akses
+      </a>
+      <a href="/admin/settings-general.html" class="nav-item">
+        <i data-lucide="settings"></i> Pengaturan Umum
+      </a>
+    </nav>
+    <div style="padding: var(--space-6); border-top: 1px solid var(--color-border);">
+      <a href="#" class="nav-item" style="padding: 0; color: var(--color-danger); border: none;" onclick="sessionStorage.removeItem('admin_token'); window.location.href='/admin/login.html';">
+        <i data-lucide="log-out"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8);">
+      <h1 class="text-white">Log Akses Siswa</h1>
+      <button id="refresh-btn" class="btn" style="padding: var(--space-2) var(--space-4); background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text);">
+        <i data-lucide="refresh-cw" size="16" style="margin-right: 8px;"></i> Refresh
+      </button>
+    </div>
+
+    <div class="card" style="max-height: calc(100vh - 150px); overflow-y: auto;">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>NISN</th>
+            <th>Status Cek</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody class="text-white" id="log-body">
+          <tr><td colspan="4" style="text-align:center; color: var(--color-text-muted); padding: 2rem;">Memuat data log...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    // Since we already have /api/dashboard/logs that limit to 20, 
+    // let's use it for now, or we can fetch a larger set.
+    // For simplicity, we just reuse the existing endpoint and maybe the server can be updated to accept a ?limit= parameter if needed.
+    
+    async function loadLogs() {
+      const tbody = document.getElementById('log-body');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--color-text-muted); padding: 2rem;"><i data-lucide="loader-2" class="spin"></i> Memuat...</td></tr>';
+      lucide.createIcons();
+
+      try {
+        // Fetch up to 100 logs (will require adding ?limit support in backend or creating new route, assuming fallback to 20 for now)
+        const res = await fetch(`http://127.0.0.1:3000/api/dashboard/logs?limit=100`);
+        const json = await res.json();
+        
+        if (json.success && json.data.length > 0) {
+          tbody.innerHTML = json.data.map(log => {
+            const timeObj = new Date(log.createdAt);
+            const timeStr = timeObj.toLocaleDateString('id-ID') + ' ' + timeObj.toLocaleTimeString('id-ID');
+            const isLulus = log.status === 'LULUS';
+            const isNotFound = log.status === 'NOT_FOUND';
+            let badge = '';
+            if (isNotFound) {
+              badge = `<span class="text-muted"><i data-lucide="help-circle" size="14"></i> Not Found</span>`;
+            } else if (isLulus) {
+              badge = `<span class="text-success"><i data-lucide="check-circle" size="14"></i> Lulus</span>`;
+            } else {
+              badge = `<span class="text-danger"><i data-lucide="x-circle" size="14"></i> Tidak Lulus</span>`;
+            }
+            return `<tr><td>${timeStr}</td><td>${log.nisn}</td><td>${badge}</td><td>${log.ip}</td></tr>`;
+          }).join('');
+          lucide.createIcons();
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--color-text-muted); padding: 2rem;">Belum ada log akses.</td></tr>';
+        }
+      } catch (e) { 
+        console.error('Logs error', e); 
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--color-danger); padding: 2rem;">Gagal memuat log akses.</td></tr>';
+      }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', loadLogs);
+
+    // Initial load
+    loadLogs();
+  </script>
+</body>
+</html>

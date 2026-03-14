@@ -68,6 +68,47 @@ router.post('/verify', (req, res) => {
   res.json({ success: true, username: session.username });
 });
 
+// @route   POST /api/auth/change-password
+// @desc    Change admin password
+router.post('/change-password', async (req, res) => {
+  try {
+    const { token, oldPassword, newPassword } = req.body;
+
+    if (!token || !activeSessions.has(token)) {
+      return res.status(401).json({ success: false, message: 'Harap login kembali' });
+    }
+
+    if (!oldPassword || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password minimal 6 karakter' });
+    }
+
+    const session = activeSessions.get(token);
+    const admin = await Admin.findById(session.adminId);
+
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin tidak ditemukan' });
+    }
+
+    if (!admin.verifyPassword(oldPassword)) {
+      return res.status(401).json({ success: false, message: 'Password lama salah' });
+    }
+
+    // Hash new password
+    const salt = crypto.randomBytes(16).toString('hex');
+    const passwordHash = Admin.hashPassword(newPassword, salt);
+
+    admin.salt = salt;
+    admin.passwordHash = passwordHash;
+    await admin.save();
+
+    res.json({ success: true, message: 'Password berhasil diubah' });
+
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
 // @route   POST /api/auth/logout
 // @desc    Invalidate a token
 router.post('/logout', (req, res) => {
